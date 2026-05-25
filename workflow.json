@@ -1,0 +1,517 @@
+{
+  "name": "Code summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Workflow\n\n## Steps\n\n### 1. Read the code related mail --> trigger\n### 2. Summarize the code using LLM\n### 3. Generate the comment for the code\n### 4. Step 2 and 3 to be done in parallel\n### 5. Merge the outputs of step 2 and 3\n### 6. Send the output to me as mail ",
+        "height": 320,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -704,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "d9d0560e-31e8-4759-a4b6-d3398b8df599",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "sender": "dhitivarma265@gmail.com"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -336,
+        0
+      ],
+      "id": "89357837-79c9-4092-b373-7ec7ff22b511",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3rD8eVdW0wISdvl3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Given the code below\nCode:\n{{ $json.text }}\nGenerate comments for the node so that i can understand what each line of code does.\nNOTE: Do not modify the existing code lines at all. Just add the comments wherever required.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a helpful assistant and know how to write code in python. You can help me to understand the code by adding comments to it. "
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -48,
+        -160
+      ],
+      "id": "a203e16c-6fa6-46be-8f8e-a93018125909",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Given the code below\nCode:\n{{ $json.text }}\nGenerate a summary of what this code does in very simple language. Do note that the summary should contain all the important details there are in the code so that i know what the code is about in a quick glance.\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in python code. You have the ability to summarize the code in simple language and have the knack to cover important details in the summary"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -64,
+        160
+      ],
+      "id": "322b6f36-3e0d-481e-8416-c6a1e99cce48",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        -16
+      ],
+      "id": "cf68480d-5e8e-4897-ac7b-b3c5d1316a89",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "RtuDOtzwjTNYiVCG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        304
+      ],
+      "id": "49c47c00-296b-4683-a835-37b89bb5ebf9",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "RtuDOtzwjTNYiVCG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "f30adf3a-3730-4ff3-b1db-b10b3e68a636",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        496,
+        0
+      ],
+      "id": "11cee558-6d98-483a-a28c-92b2d09490da",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "dhitivarma2004@gmail.com",
+        "subject": "Code with comment and summary",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        0
+      ],
+      "id": "25a15aa2-6451-41ed-b653-f74486da2a41",
+      "name": "Send a message",
+      "webhookId": "3c453652-72ec-49db-bc43-0e7ccb3f2452",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3rD8eVdW0wISdvl3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2f3e4213-8873-470b-a711-f62e68fd47b8",
+              "name": "message",
+              "value": "=Code with comments:\n{{ $json.text[0] }}\n\nCode summary:\n{{ $json.text[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        0
+      ],
+      "id": "73ae59e7-7b4b-4e7e-8b5d-11403b56703e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Convert the message into HTML format. \nInclude proper code blocks wherever necessary.  The code block should have syntax highlighting for the specific language used in the code.\n\nMessage:\n\n {{ $json.message }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You can convert any message into HTML format that can be sent on mail to the user."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        0
+      ],
+      "id": "fa6b4971-61d5-4714-8828-13367bd50df9",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        848,
+        160
+      ],
+      "id": "d2c357b5-832d-4667-b890-0ad473908905",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "RtuDOtzwjTNYiVCG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "19e5879eac8518e9",
+          "threadId": "19e5879eac8518e9",
+          "labelIds": [
+            "UNREAD",
+            "IMPORTANT",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 10271,
+          "headers": {
+            "delivered-to": "Delivered-To: dhitivarma2004@gmail.com",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id 38308e7fff4ca-395dca8ad8asor6857971fa.13.2026.05.23.22.34.05\r\n        for <dhitivarma2004@gmail.com>\r\n        (Google Transport Security);\r\n        Sat, 23 May 2026 22:34:05 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a05:6512:4890:b0:5a8:f6fd:1cb with SMTP id\r\n 2adb3069b0e04-5aa3238ed6bmr2486157e87.26.1779600844796; Sat, 23 May 2026\r\n 22:34:04 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1779600845; cv=none;\r\n        d=google.com; s=arc-20240605;\r\n        b=XzTrfOHgPQUbWYy9pWDueGhRcj9667tQToJEahYx/iQvA/LALRBAg99AP47KpGTv5N\r\n         8zczHMQfNDJdFA7E8mTudwb8hT1gzF8Ioi+9L4ygGux3HmgX0U0Ua4Bnw41U8Ik/8ECE\r\n         6hxhBt98K2u7g+viqRxfo/xWns5YkH1DjjHQoRVbX8kdkt800R9lZLl1YPvg9xIzJpaX\r\n         ulalyAa3d3TV0qij1YyGqSAPQvCnEVnfX3/3kBBX7pfFcKkjYNMWyX/fcuNr4D98wyuG\r\n         gsPF2ZRfj4WOqOc3cDR7Q9bYDqdNwf5URMM35o6DkVijdKNvMBbs18V/wpaj4cn7MmWH\r\n         lXwQ==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=aZVw0+gUr8JMtp3le1cwY9jUuuz+gj5ZK1LrPrygMOI=;\r\n        fh=hv0XLjNVv1hcwEo3Et7tuqlZ0/a+0rmGVMjcJ5llEWo=;\r\n        b=YCNHqYCIDhzs/DLBVIsbRZ5++IiK0NkZqKZvulo2NrV6MwEDQ7vGecfM5M4tlT/9T3\r\n         6CqfwSTkm4QTbJexRKni8d/hOwlzXcVP0htMYJ1AGRDwL1YvqAebhcQiIDdd/d5E75j/\r\n         nMHqFDDqOWi5NVEWalvkriyBxN03IjOdsC0botc9umSprv0COY0mEEGRsOIe9K8aib36\r\n         u1NcQQgNvA+lr/CJ72sdNZiTtMKjuEDLD/W8TR9EWZcGiBJPg08j6STFkxfQkHt5kpil\r\n         cOptuthxYNQhil/HhuWJvAc9R2lrianev35gBw5QPsZ3YltWtGPDnXsE5mUT9uQKFYQ5\r\n         FWrw==;\r\n        dara=google.com",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com; arc=none",
+            "return-path": "Return-Path: <dhitivarma265@gmail.com>",
+            "received-spf": "Received-SPF: pass (google.com: domain of dhitivarma265@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20251104 header.b=QrAxf6Wa;\r\n       arc=pass (i=1);\r\n       spf=pass (google.com: domain of dhitivarma265@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=dhitivarma265@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=gmail.com; s=20251104; t=1779600845; x=1780205645; dara=google.com;\r\n        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject\r\n         :date:message-id:reply-to;\r\n        bh=aZVw0+gUr8JMtp3le1cwY9jUuuz+gj5ZK1LrPrygMOI=;\r\n        b=QrAxf6Wap8PUpVglEzZlSW4ujmh/4V9aEAzF9abaOBRD/360/DrvtTg/SEkElu07j0\r\n         YO6Xniklfc4ZqzzA+msizhQmQ0H+qih1mHk58Cif9cbwanqji6p/qc/vTnVc+gE0JT/9\r\n         PlVOPBe3i/khp2ELlDTXOU3cjZ3uhlCv01XxhFSMUS7Uby7vHiTvsjKPM2ME6oYs3IpH\r\n         Uaw7ukkTMPeg82bTWfePhUitmot/dj/Ip/NVccBNXPP7bQxifrVQDqAibG2+KrN7e3LS\r\n         fUER2b7SKjxe1x51phvwyH21yhEpjM2nF9s9LtALQYvf4rvue3JMNQ90IVBQ/m/NxE0B\r\n         d3oA==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20251104; t=1779600845; x=1780205645;\r\n        h=to:subject:message-id:date:from:mime-version:x-gm-gg\r\n         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;\r\n        bh=aZVw0+gUr8JMtp3le1cwY9jUuuz+gj5ZK1LrPrygMOI=;\r\n        b=mbnEX5gaG7dNocYQl1cW9kRt0qH2wElpXziLWT3iXb4XN0d6TDsmrV/1mO+SKBuUBe\r\n         et0x2kQ1Cr70v+E8T9AcY5ssZtH7g0NbjfN2bjiG+Gd9ZKWPMizeV+LVzw9Z1EmnNQ3t\r\n         3rVdFR7ZRBYZRxGaDf4joFgoaW+iL2XhuAqLp2DteOhljJpQSn/WlUhtnBt0I+vlrJxc\r\n         aaQ8d37ZkjOB+VfB1FXCehhVqHrvCivULsMP2UqxPQJzGgdJGSNk47fDMFy+TAV2uMbY\r\n         5a2D5rHN3FcHk1J1GCdUKNyAUNPsToX+u1muyZoiBDeq8QZ2E7aoNM2X+bZwjwd+9zme\r\n         DSKw==",
+            "x-gm-message-state": "X-Gm-Message-State: AOJu0YwUTEVdhYtz3QjfG9VzSYvBMfpvbSElSWKVRxZ6muvk5a8/AIkd\r\n\tfrguGkGhhr5g4w6jE/wHJeJ7AXALdGRvkxqQhgQDTNBsBlnyZkrw/soNcxWLzrlecg4vvIjnHsL\r\n\taEMoLMaYZBfBs11xtZFVeR/iQjNSVXpfWoA==",
+            "x-gm-gg": "X-Gm-Gg: Acq92OFzxiJve2RJQi43la9IjrKeU4Fp+uwh/+/L25Ray2p/Z+HuSK2KqKhBCXN9m/D\r\n\tNZtl28yS/wLHZhgKEqXCG0nzi02IiyNuqtbzoWT9Fo35SpqhufILqj623C28c7beube+F75rSP+\r\n\tnQYg+r9BTNBFeFEGL6wPuJx9bR+Es5wM6HE9t8lbroKqN600JSmZs+PwucK+zrUaLkgzEEaDTnQ\r\n\t+eKVpq/+yhQpKYaS4e36ytiN+GC86qlDcaSaPpQ+IzVDHWram24lOcOSnfNNRoSC6T86A8M9Oq9\r\n\ttlH442M3N/GgZ8F9PWE=",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: Dhiti Varma <dhitivarma265@gmail.com>",
+            "date": "Date: Sun, 24 May 2026 11:03:25 +0530",
+            "x-gm-features": "X-Gm-Features: AVHnY4Jf2w-q3xJqsmnf_faf9ndq6iHz76_2283GgtE_NFAqlTtLWzmWat95fdc",
+            "message-id": "Message-ID: <CAOHzGU1xDjL_wXxzS-FT1_cK_Mpg0UM7xe9qqVY6bSTP++HhQw@mail.gmail.com>",
+            "subject": "Subject: N8n",
+            "to": "To: dhiti varma <dhitivarma2004@gmail.com>",
+            "content-type": "Content-Type: multipart/alternative; boundary=\"0000000000003236ba0652899cad\""
+          },
+          "html": "<div dir=\"auto\">import random<div dir=\"auto\"><br></div><div dir=\"auto\">def play_game():</div><div dir=\"auto\">    # Generate a secret number between 1 and 100</div><div dir=\"auto\">    secret_number = random.randint(1, 100)</div><div dir=\"auto\">    attempts = 0</div><div dir=\"auto\">    </div><div dir=\"auto\">    print(&quot;Welcome to the Number Guessing Game!&quot;)</div><div dir=\"auto\">    print(&quot;I am thinking of a number between 1 and 100.&quot;)</div><div dir=\"auto\">    </div><div dir=\"auto\">    while True:</div><div dir=\"auto\">        try:</div><div dir=\"auto\">            # Take input from the user</div><div dir=\"auto\">            guess = int(input(&quot;Take a guess: &quot;))</div><div dir=\"auto\">            attempts += 1</div><div dir=\"auto\">            </div><div dir=\"auto\">            # Check the user&#39;s guess against the secret number</div><div dir=\"auto\">            if guess &lt; secret_number:</div><div dir=\"auto\">                print(&quot;Too low! Try again.&quot;)</div><div dir=\"auto\">            elif guess &gt; secret_number:</div><div dir=\"auto\">                print(&quot;Too high! Try again.&quot;)</div><div dir=\"auto\">            else:</div><div dir=\"auto\">                print(f&quot;🎉 Correct! You found it in {attempts} attempts.&quot;)</div><div dir=\"auto\">                break</div><div dir=\"auto\">        except ValueError:</div><div dir=\"auto\">            print(&quot;Please enter a valid whole number.&quot;)</div><div dir=\"auto\"><br></div><div dir=\"auto\"># Run the game</div><div dir=\"auto\">if __name__ == &quot;__main__&quot;:</div><div dir=\"auto\">    play_game()</div></div>\n",
+          "text": "import random\n\ndef play_game():\n    # Generate a secret number between 1 and 100\n    secret_number = random.randint(1, 100)\n    attempts = 0\n\n    print(\"Welcome to the Number Guessing Game!\")\n    print(\"I am thinking of a number between 1 and 100.\")\n\n    while True:\n        try:\n            # Take input from the user\n            guess = int(input(\"Take a guess: \"))\n            attempts += 1\n\n            # Check the user's guess against the secret number\n            if guess < secret_number:\n                print(\"Too low! Try again.\")\n            elif guess > secret_number:\n                print(\"Too high! Try again.\")\n            else:\n                print(f\"🎉 Correct! You found it in {attempts} attempts.\")\n                break\n        except ValueError:\n            print(\"Please enter a valid whole number.\")\n\n# Run the game\nif __name__ == \"__main__\":\n    play_game()\n",
+          "textAsHtml": "<p>import random</p><p>def play_game():<br/>    # Generate a secret number between 1 and 100<br/>    secret_number = random.randint(1, 100)<br/>    attempts = 0</p><p>    print(&quot;Welcome to the Number Guessing Game!&quot;)<br/>    print(&quot;I am thinking of a number between 1 and 100.&quot;)</p><p>    while True:<br/>        try:<br/>            # Take input from the user<br/>            guess = int(input(&quot;Take a guess: &quot;))<br/>            attempts += 1</p><p>            # Check the user&apos;s guess against the secret number<br/>            if guess &lt; secret_number:<br/>                print(&quot;Too low! Try again.&quot;)<br/>            elif guess &gt; secret_number:<br/>                print(&quot;Too high! Try again.&quot;)<br/>            else:<br/>                print(f&quot;&#x1F389; Correct! You found it in {attempts} attempts.&quot;)<br/>                break<br/>        except ValueError:<br/>            print(&quot;Please enter a valid whole number.&quot;)</p><p># Run the game<br/>if __name__ == &quot;__main__&quot;:<br/>    play_game()</p>",
+          "subject": "N8n",
+          "date": "2026-05-24T05:33:25.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "dhitivarma2004@gmail.com",
+                "name": "dhiti varma"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">dhiti varma</span> &lt;<a href=\"mailto:dhitivarma2004@gmail.com\" class=\"mp_address_email\">dhitivarma2004@gmail.com</a>&gt;</span>",
+            "text": "\"dhiti varma\" <dhitivarma2004@gmail.com>"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "dhitivarma265@gmail.com",
+                "name": "Dhiti Varma"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Dhiti Varma</span> &lt;<a href=\"mailto:dhitivarma265@gmail.com\" class=\"mp_address_email\">dhitivarma265@gmail.com</a>&gt;</span>",
+            "text": "\"Dhiti Varma\" <dhitivarma265@gmail.com>"
+          },
+          "messageId": "<CAOHzGU1xDjL_wXxzS-FT1_cK_Mpg0UM7xe9qqVY6bSTP++HhQw@mail.gmail.com>"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Basic LLM Chain": [
+      {
+        "json": {
+          "text": "Here is the code with detailed comments explaining what each line and block does:\n\n```python\nimport random # Import the built-in random module to generate random integers\n\ndef play_game(): # Define a function named 'play_game' to hold the game logic\n    # Generate a secret number between 1 and 100\n    secret_number = random.randint(1, 100) # Use the random module to pick a number from 1 to 100\n    attempts = 0 # Create a variable to keep track of how many guesses the player has made\n\n    print(\"Welcome to the Number Guessing Game!\") # Print a welcome message to the console\n    print(\"I am thinking of a number between 1 and 100.\") # Inform the player of the number range\n\n    while True: # Start an infinite loop that will only stop when the user guesses correctly\n        try: # Start a try block to catch errors if the user enters something other than a number\n            # Take input from the user\n            guess = int(input(\"Take a guess: \")) # Prompt user for a guess and convert the input string to an integer\n            attempts += 1 # Increment the attempt counter by 1 for every guess made\n\n            # Check the user's guess against the secret number\n            if guess < secret_number: # Check if the guessed number is lower than the secret number\n                print(\"Too low! Try again.\") # Provide feedback that the guess was too low\n            elif guess > secret_number: # Check if the guessed number is higher than the secret number\n                print(\"Too high! Try again.\") # Provide feedback that the guess was too high\n            else: # If the guess is neither lower nor higher, it must be correct\n                print(f\"🎉 Correct! You found it in {attempts} attempts.\") # Print a success message with the total attempts\n                break # Break out of the while loop to end the game\n        except ValueError: # This block runs if the 'int()' conversion fails (e.g., if the user types a letter)\n            print(\"Please enter a valid whole number.\") # Tell the user to enter a number instead of text\n\n# Run the game\nif __name__ == \"__main__\": # A standard Python check to see if the script is being run directly\n    play_game() # Call the play_game function to start the logic\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Basic LLM Chain1": [
+      {
+        "json": {
+          "text": "This code creates a simple **Number Guessing Game** where the computer challenges a player to find a hidden number.\n\nHere is a breakdown of the important details:\n\n*   **The Secret Number:** The program picks a random whole number between **1 and 100** at the start of the game.\n*   **The Goal:** The player must keep guessing until they find the correct number.\n*   **Feedback System:** For every guess, the program gives a hint:\n    *   It tells you if your guess is **\"Too low\"**.\n    *   It tells you if your guess is **\"Too high\"**.\n*   **Attempt Tracking:** The code keeps a running count of how many guesses you have made.\n*   **Error Handling:** If you accidentally type something that isn't a number (like letters), the code is designed not to crash; instead, it politely asks you to enter a valid whole number.\n*   **Winning:** Once you guess correctly, the program announces your victory, shows you the total number of attempts it took to win, and ends the game."
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Merge": [
+      {
+        "json": {
+          "text": "Here is the code with detailed comments explaining what each line and block does:\n\n```python\nimport random # Import the built-in random module to generate random integers\n\ndef play_game(): # Define a function named 'play_game' to hold the game logic\n    # Generate a secret number between 1 and 100\n    secret_number = random.randint(1, 100) # Use the random module to pick a number from 1 to 100\n    attempts = 0 # Create a variable to keep track of how many guesses the player has made\n\n    print(\"Welcome to the Number Guessing Game!\") # Print a welcome message to the console\n    print(\"I am thinking of a number between 1 and 100.\") # Inform the player of the number range\n\n    while True: # Start an infinite loop that will only stop when the user guesses correctly\n        try: # Start a try block to catch errors if the user enters something other than a number\n            # Take input from the user\n            guess = int(input(\"Take a guess: \")) # Prompt user for a guess and convert the input string to an integer\n            attempts += 1 # Increment the attempt counter by 1 for every guess made\n\n            # Check the user's guess against the secret number\n            if guess < secret_number: # Check if the guessed number is lower than the secret number\n                print(\"Too low! Try again.\") # Provide feedback that the guess was too low\n            elif guess > secret_number: # Check if the guessed number is higher than the secret number\n                print(\"Too high! Try again.\") # Provide feedback that the guess was too high\n            else: # If the guess is neither lower nor higher, it must be correct\n                print(f\"🎉 Correct! You found it in {attempts} attempts.\") # Print a success message with the total attempts\n                break # Break out of the while loop to end the game\n        except ValueError: # This block runs if the 'int()' conversion fails (e.g., if the user types a letter)\n            print(\"Please enter a valid whole number.\") # Tell the user to enter a number instead of text\n\n# Run the game\nif __name__ == \"__main__\": # A standard Python check to see if the script is being run directly\n    play_game() # Call the play_game function to start the logic\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "text": "This code creates a simple **Number Guessing Game** where the computer challenges a player to find a hidden number.\n\nHere is a breakdown of the important details:\n\n*   **The Secret Number:** The program picks a random whole number between **1 and 100** at the start of the game.\n*   **The Goal:** The player must keep guessing until they find the correct number.\n*   **Feedback System:** For every guess, the program gives a hint:\n    *   It tells you if your guess is **\"Too low\"**.\n    *   It tells you if your guess is **\"Too high\"**.\n*   **Attempt Tracking:** The code keeps a running count of how many guesses you have made.\n*   **Error Handling:** If you accidentally type something that isn't a number (like letters), the code is designed not to crash; instead, it politely asks you to enter a valid whole number.\n*   **Winning:** Once you guess correctly, the program announces your victory, shows you the total number of attempts it took to win, and ends the game."
+        },
+        "pairedItem": {
+          "item": 0,
+          "input": 1
+        }
+      }
+    ],
+    "Aggregate": [
+      {
+        "json": {
+          "text": [
+            "Here is the code with detailed comments explaining what each line and block does:\n\n```python\nimport random # Import the built-in random module to generate random integers\n\ndef play_game(): # Define a function named 'play_game' to hold the game logic\n    # Generate a secret number between 1 and 100\n    secret_number = random.randint(1, 100) # Use the random module to pick a number from 1 to 100\n    attempts = 0 # Create a variable to keep track of how many guesses the player has made\n\n    print(\"Welcome to the Number Guessing Game!\") # Print a welcome message to the console\n    print(\"I am thinking of a number between 1 and 100.\") # Inform the player of the number range\n\n    while True: # Start an infinite loop that will only stop when the user guesses correctly\n        try: # Start a try block to catch errors if the user enters something other than a number\n            # Take input from the user\n            guess = int(input(\"Take a guess: \")) # Prompt user for a guess and convert the input string to an integer\n            attempts += 1 # Increment the attempt counter by 1 for every guess made\n\n            # Check the user's guess against the secret number\n            if guess < secret_number: # Check if the guessed number is lower than the secret number\n                print(\"Too low! Try again.\") # Provide feedback that the guess was too low\n            elif guess > secret_number: # Check if the guessed number is higher than the secret number\n                print(\"Too high! Try again.\") # Provide feedback that the guess was too high\n            else: # If the guess is neither lower nor higher, it must be correct\n                print(f\"🎉 Correct! You found it in {attempts} attempts.\") # Print a success message with the total attempts\n                break # Break out of the while loop to end the game\n        except ValueError: # This block runs if the 'int()' conversion fails (e.g., if the user types a letter)\n            print(\"Please enter a valid whole number.\") # Tell the user to enter a number instead of text\n\n# Run the game\nif __name__ == \"__main__\": # A standard Python check to see if the script is being run directly\n    play_game() # Call the play_game function to start the logic\n```",
+            "This code creates a simple **Number Guessing Game** where the computer challenges a player to find a hidden number.\n\nHere is a breakdown of the important details:\n\n*   **The Secret Number:** The program picks a random whole number between **1 and 100** at the start of the game.\n*   **The Goal:** The player must keep guessing until they find the correct number.\n*   **Feedback System:** For every guess, the program gives a hint:\n    *   It tells you if your guess is **\"Too low\"**.\n    *   It tells you if your guess is **\"Too high\"**.\n*   **Attempt Tracking:** The code keeps a running count of how many guesses you have made.\n*   **Error Handling:** If you accidentally type something that isn't a number (like letters), the code is designed not to crash; instead, it politely asks you to enter a valid whole number.\n*   **Winning:** Once you guess correctly, the program announces your victory, shows you the total number of attempts it took to win, and ends the game."
+          ]
+        },
+        "pairedItem": [
+          {
+            "item": 0
+          },
+          {
+            "item": 1
+          }
+        ]
+      }
+    ],
+    "Basic LLM Chain2": [
+      {
+        "json": {
+          "text": "To provide you with a clean, professional email format, I have converted your message into HTML. I have used inline CSS for maximum compatibility with email clients (like Gmail and Outlook) and manually applied syntax highlighting to the Python code.\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n    <style>\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            line-height: 1.6;\n            color: #333333;\n            background-color: #f9f9f9;\n            padding: 20px;\n        }\n        .container {\n            max-width: 800px;\n            margin: 0 auto;\n            background-color: #ffffff;\n            padding: 30px;\n            border-radius: 8px;\n            box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n        }\n        h2 {\n            color: #2c3e50;\n            border-bottom: 2px solid #eeeeee;\n            padding-bottom: 10px;\n        }\n        .code-block {\n            background-color: #1e1e1e;\n            color: #d4d4d4;\n            padding: 20px;\n            border-radius: 6px;\n            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;\n            font-size: 14px;\n            line-height: 1.5;\n            overflow-x: auto;\n            margin: 20px 0;\n            white-space: pre;\n        }\n        /* Syntax Highlighting Colors */\n        .keyword { color: #569cd6; } /* Blue */\n        .comment { color: #6a9955; font-style: italic; } /* Green */\n        .string { color: #ce9178; } /* Orange/Red */\n        .number { color: #b5cea8; } /* Light Green */\n        .function { color: #dcdcaa; } /* Yellow */\n        .builtin { color: #4ec9b0; } /* Teal */\n        \n        .summary-section {\n            background-color: #f8f9fa;\n            border-left: 4px solid #007bff;\n            padding: 15px;\n            margin-top: 20px;\n        }\n        ul {\n            padding-left: 20px;\n        }\n        li {\n            margin-bottom: 10px;\n        }\n        b {\n            color: #000;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <h2>Code with comments:</h2>\n        <p>Here is the code with detailed comments explaining what each line and block does:</p>\n\n        <div class=\"code-block\">\n<span class=\"keyword\">import</span> random <span class=\"comment\"># Import the built-in random module to generate random integers</span>\n\n<span class=\"keyword\">def</span> <span class=\"function\">play_game</span>(): <span class=\"comment\"># Define a function named 'play_game' to hold the game logic</span>\n    <span class=\"comment\"># Generate a secret number between 1 and 100</span>\n    secret_number = random.randint(<span class=\"number\">1</span>, <span class=\"number\">100</span>) <span class=\"comment\"># Use the random module to pick a number from 1 to 100</span>\n    attempts = <span class=\"number\">0</span> <span class=\"comment\"># Create a variable to keep track of how many guesses the player has made</span>\n\n    <span class=\"builtin\">print</span>(<span class=\"string\">\"Welcome to the Number Guessing Game!\"</span>) <span class=\"comment\"># Print a welcome message to the console</span>\n    <span class=\"builtin\">print</span>(<span class=\"string\">\"I am thinking of a number between 1 and 100.\"</span>) <span class=\"comment\"># Inform the player of the number range</span>\n\n    <span class=\"keyword\">while True</span>: <span class=\"comment\"># Start an infinite loop that will only stop when the user guesses correctly</span>\n        <span class=\"keyword\">try</span>: <span class=\"comment\"># Start a try block to catch errors if the user enters something other than a number</span>\n            <span class=\"comment\"># Take input from the user</span>\n            guess = <span class=\"builtin\">int</span>(<span class=\"builtin\">input</span>(<span class=\"string\">\"Take a guess: \"</span>)) <span class=\"comment\"># Prompt user for a guess and convert the input string to an integer</span>\n            attempts += <span class=\"number\">1</span> <span class=\"comment\"># Increment the attempt counter by 1 for every guess made</span>\n\n            <span class=\"comment\"># Check the user's guess against the secret number</span>\n            <span class=\"keyword\">if</span> guess &lt; secret_number: <span class=\"comment\"># Check if the guessed number is lower than the secret number</span>\n                <span class=\"builtin\">print</span>(<span class=\"string\">\"Too low! Try again.\"</span>) <span class=\"comment\"># Provide feedback that the guess was too low</span>\n            <span class=\"keyword\">elif</span> guess &gt; secret_number: <span class=\"comment\"># Check if the guessed number is higher than the secret number</span>\n                <span class=\"builtin\">print</span>(<span class=\"string\">\"Too high! Try again.\"</span>) <span class=\"comment\"># Provide feedback that the guess was too high</span>\n            <span class=\"keyword\">else</span>: <span class=\"comment\"># If the guess is neither lower nor higher, it must be correct</span>\n                <span class=\"builtin\">print</span>(<span class=\"string\">f\"🎉 Correct! You found it in {attempts} attempts.\"</span>) <span class=\"comment\"># Print a success message with the total attempts</span>\n                <span class=\"keyword\">break</span> <span class=\"comment\"># Break out of the while loop to end the game</span>\n        <span class=\"keyword\">except</span> <span class=\"builtin\">ValueError</span>: <span class=\"comment\"># This block runs if the 'int()' conversion fails (e.g., if the user types a letter)</span>\n            <span class=\"builtin\">print</span>(<span class=\"string\">\"Please enter a valid whole number.\"</span>) <span class=\"comment\"># Tell the user to enter a number instead of text</span>\n\n<span class=\"comment\"># Run the game</span>\n<span class=\"keyword\">if</span> __name__ == <span class=\"string\">\"__main__\"</span>: <span class=\"comment\"># A standard Python check to see if the script is being run directly</span>\n    play_game() <span class=\"comment\"># Call the play_game function to start the logic</span></div>\n\n        <div class=\"summary-section\">\n            <h2>Code summary:</h2>\n            <p>This code creates a simple <b>Number Guessing Game</b> where the computer challenges a player to find a hidden number.</p>\n            \n            <p>Here is a breakdown of the important details:</p>\n            <ul>\n                <li><b>The Secret Number:</b> The program picks a random whole number between <b>1 and 100</b> at the start of the game.</li>\n                <li><b>The Goal:</b> The player must keep guessing until they find the correct number.</li>\n                <li><b>Feedback System:</b> For every guess, the program gives a hint:\n                    <ul>\n                        <li>It tells you if your guess is <b>\"Too low\"</b>.</li>\n                        <li>It tells you if your guess is <b>\"Too high\"</b>.</li>\n                    </ul>\n                </li>\n                <li><b>Attempt Tracking:</b> The code keeps a running count of how many guesses you have made.</li>\n                <li><b>Error Handling:</b> If you accidentally type something that isn't a number (like letters), the code is designed not to crash; instead, it politely asks you to enter a valid whole number.</li>\n                <li><b>Winning:</b> Once you guess correctly, the program announces your victory, shows you the total number of attempts it took to win, and ends the game.</li>\n            </ul>\n        </div>\n    </div>\n</body>\n</html>\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bb4895b9-0f8f-4341-b6ef-68782d2fd475",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "85573777b82d24cabb1ddf3b778ae3dc9fddf841a597188c6e9b5dc19476b875"
+  },
+  "id": "MtHezA88R6AO2GlS",
+  "tags": []
+}
