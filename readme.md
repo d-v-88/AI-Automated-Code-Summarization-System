@@ -2,10 +2,6 @@
 
 An AI-powered workflow automation system built using n8n that automatically analyzes code received through email. The workflow processes incoming code using Large Language Models (LLMs), generates summaries and developer-friendly comments, aggregates the outputs, and sends the final processed response back through email.
 
-## Screenshots
-
-![Workflow](screenshots/workflow.png)
-
 ## Features
 
 - Gmail-triggered workflow automation
@@ -67,7 +63,9 @@ Send Email Response
 
 ### Output Email
 
-![Output Email](screenshots/output-email.png)
+![Code with comments](screenshots/output-email-images/code-with-comments.png)
+
+![Code summary](screenshots/output-email-images/code-summary.png)
 
 ## Project Structure
 
